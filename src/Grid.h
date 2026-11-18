@@ -3,11 +3,12 @@
 #include <array>
 #include <vector>
 
+#include "Constants.h"
 #include "ShortTypes.h"
 
 class Grid {
 public:
-    enum HeaderType { HEADER_TOP, HEADER_LEFT, HEADER_MAX };
+    enum HeaderType { HEADER_VERT, HEADER_HORZ, HEADER_MAX };
     enum Cell { CELL_OPEN, CELL_VALID, CELL_INVALID };
 
     // ----- Creation / Destruction -----
@@ -15,21 +16,26 @@ public:
     Grid(int width, int height);
     ~Grid() = default;
 
+    void ResizeWidth(int newCount);
+    void ResizeHeight(int newCount);
+
     // ----- Read -----
 
-    int                    Width() const noexcept;
-    int                    Height() const noexcept;
-    const std::vector<u8>& Header(HeaderType type, int line) const noexcept;
+    int                    Width() const;
+    int                    Height() const;
+    const std::vector<u8>& Header(HeaderType type, int line) const;
 
-    std::vector<Cell>&       Row(int row);
-    const std::vector<Cell>& Row(int row) const noexcept;
-
-    std::vector<Cell>&       Column(int column);
-    const std::vector<Cell>& Column(int column) const noexcept;
+    std::vector<Cell>        Row(int row) const;
+    std::vector<Cell>        Column(int column) const;
+    Cell                     At(Point point) const;
+    const std::vector<Cell>& operator[](int idx) const;
 
     // ----- Update -----
 
     std::vector<u8>& Header(HeaderType type, int line);
+
+    Cell&              At(Point point);
+    std::vector<Cell>& operator[](int idx);
 
 private:
     // Array   - Left and Top

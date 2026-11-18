@@ -12,7 +12,9 @@ find_package(raylib CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
     ${SRC}/Grid.cpp
-    ${SRC}/main.cpp
+    ${SRC}/main.cpp 
+    ${SRC}/Menu.cpp 
+    ${SRC}/Solver.cpp 
     ${SRC}/Utils.cpp
     ${THIRD_PARTY}/raygui.c
 )
