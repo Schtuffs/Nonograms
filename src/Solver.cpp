@@ -6,7 +6,6 @@ namespace Solver {
 
 void ReverseSolve(Grid& grid)
 {
-    return;
     // Vertical headers
     for (int x = 0; x < grid.Width(); x++) {
         auto& header = grid.Header(Grid::HEADER_VERT, x);
@@ -28,7 +27,7 @@ void ReverseSolve(Grid& grid)
     }
 
     // Horizontal headers
-    for (int y = 0; y < grid.Width(); y++) {
+    for (int y = 0; y < grid.Height(); y++) {
         auto& header = grid.Header(Grid::HEADER_HORZ, y);
         header.clear();
 

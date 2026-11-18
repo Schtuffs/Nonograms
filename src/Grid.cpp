@@ -1,5 +1,7 @@
 #include "Grid.h"
 
+#include <print>
+
 // ----- Creation / Destruction -----
 
 Grid::Grid(int w, int h) : m_width(w), m_height(h)
@@ -31,10 +33,19 @@ void Grid::ResizeWidth(int s)
 
     m_cells.resize(s);
     m_headers[Grid::HEADER_VERT].resize(s);
-    // if (s > m_width) {
-    //     m_cells[s - 1] = std::vector<Grid::Cell>(m_height);
-    // }
     m_width = s;
+
+    for (auto& line : m_cells) {
+        if (line.size() == 0) {
+            line.resize(m_height);
+        }
+    }
+
+    for (auto& header : m_headers[Grid::HEADER_VERT]) {
+        if (header.size() == 0) {
+            header.resize(1);
+        }
+    }
 }
 
 void Grid::ResizeHeight(int s)
@@ -42,12 +53,18 @@ void Grid::ResizeHeight(int s)
     if (s < 1) {
         s = 1;
     }
-    
+
+    m_headers[Grid::HEADER_HORZ].resize(s);
     for (u64 i = 0; i < m_cells.size(); i++) {
         m_cells[i].resize(s);
-        m_headers[Grid::HEADER_HORZ][i].resize(s);
     }
     m_height = s;
+
+    for (auto& header : m_headers[Grid::HEADER_HORZ]) {
+        if (header.size() == 0) {
+            header.resize(1);
+        }
+    }
 }
 
 // ----- Read -----

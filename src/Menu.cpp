@@ -168,14 +168,14 @@ int Create(int menu, Grid& grid)
     bool mouseLeft  = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
     bool mouseRight = IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
 
-    float wid = GetScreenWidth() / 8;
-    float hei = GetScreenHeight() / 8;
+    float wid = GetScreenWidth() / 10.;
+    float hei = GetScreenHeight() / 10.;
 
     std::string str = "Grid Width: " + std::to_string(grid.Width());
-    GuiButton({wid * 6, hei * 6, wid, hei}, str.c_str());
+    GuiButton({wid * 8, hei * 8, wid, hei}, str.c_str());
 
     str = "Grid Height: " + std::to_string(grid.Height());
-    GuiButton({wid * 6, hei * 7, wid, hei}, str.c_str());
+    GuiButton({wid * 8, hei * 9, wid, hei}, str.c_str());
 
     // Detect button presses.
     if (ButtonClicked(res, BUTTON4)) {
@@ -184,22 +184,22 @@ int Create(int menu, Grid& grid)
         STATE.Create.headerIndex = 0;
     }
     // Grid width--
-    else if (GuiButton({wid * 5, hei * 6, wid, hei}, "-")) {
+    else if (GuiButton({wid * 7, hei * 8, wid, hei}, "-")) {
         grid.ResizeWidth(grid.Width() - 1);
         Solver::ReverseSolve(grid);
     }
     // Grid width++
-    else if (GuiButton({wid * 7, hei * 6, wid, hei}, "+")) {
+    else if (GuiButton({wid * 9, hei * 8, wid, hei}, "+")) {
         grid.ResizeWidth(grid.Width() + 1);
         Solver::ReverseSolve(grid);
     }
     // Grid height--
-    else if (GuiButton({wid * 5, hei * 7, wid, hei}, "-")) {
+    else if (GuiButton({wid * 7, hei * 9, wid, hei}, "-")) {
         grid.ResizeHeight(grid.Height() - 1);
         Solver::ReverseSolve(grid);
     }
     // Grid height++
-    else if (GuiButton({wid * 7, hei * 7, wid, hei}, "+")) {
+    else if (GuiButton({wid * 9, hei * 9, wid, hei}, "+")) {
         grid.ResizeHeight(grid.Height() + 1);
         Solver::ReverseSolve(grid);
     }
@@ -320,7 +320,8 @@ void RenderGridLineCells(const std::vector<Grid::Cell>& cells, int size, int y)
             break;
         case Grid::CELL_INVALID:
             DrawRectangle(idx * size, y, size, size, WHITE);
-            DrawLine(idx * size, y, idx * size + y, idx * size + y, BLACK);
+            DrawLine(idx * size, y, idx * size + size, y + size, BLACK);
+            DrawLine(idx * size, y + size, idx * size + size, y, BLACK);
             break;
         }
 
@@ -360,11 +361,10 @@ void RenderGrid(const Grid& grid)
     RenderGridLineHeader(grid.Header(STATE.Create.headerType, STATE.Create.headerIndex), size,
                          GetRenderHeight() * 0.583333);
     if (STATE.Create.headerType == Grid::HEADER_HORZ) {
-        RenderGridLineCells(grid.Row(STATE.Create.headerIndex), size,
-                            GetRenderHeight() * 0.8333333);
+        RenderGridLineCells(grid.Row(STATE.Create.headerIndex), size, GetRenderHeight() * 0.583333);
     } else {
         RenderGridLineCells(grid.Column(STATE.Create.headerIndex), size,
-                            GetRenderHeight() * 0.8333333);
+                            GetRenderHeight() * 0.583333);
     }
 
     rlPopMatrix();
