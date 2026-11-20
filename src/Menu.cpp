@@ -3,6 +3,7 @@
 #include <print>
 #include <string>
 
+#include "Constants.h"
 #include "raygui.h"
 #include "raylib.h"
 #include "rlgl.h"
@@ -21,7 +22,8 @@ constexpr int BUTTON2 = 0b0000'0010;
 constexpr int BUTTON3 = 0b0000'0100;
 constexpr int BUTTON4 = 0b0000'1000;
 
-constexpr float GRID_SIZE = 0.5;
+constexpr float GRID_SIZE     = 0.5;
+constexpr float GRID_VIEWLINE = 0.583333;
 
 constexpr int FONT_SIZE = 20;
 constexpr int BOX_SIZE  = 150;
@@ -138,6 +140,8 @@ void ToggleCell(Grid& grid, Vector2 pos, Grid::Cell value)
     }
 }
 
+int BottomLineY() { return GetRenderHeight() * GRID_VIEWLINE; }
+
 // ----- Menus -----
 
 int Main(int menu, Grid& grid)
@@ -164,7 +168,7 @@ int Create(int menu, Grid& grid)
 {
     RenderGrid(grid);
 
-    int  res        = GuiButtons(NULL, NULL, NULL, "Return");
+    int  res        = GuiButtons("Save", "Load", "Clear", "Return");
     bool mouseLeft  = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
     bool mouseRight = IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
 
@@ -178,33 +182,42 @@ int Create(int menu, Grid& grid)
     GuiButton({wid * 8, hei * 9, wid, hei}, str.c_str());
 
     // Detect button presses.
+    if (ButtonClicked(res, BUTTON1)) {
+        grid.Save("../lib/file.csv");
+    }
+    if (ButtonClicked(res, BUTTON2)) {
+        grid.Load("../lib/file.csv");
+    }
+    if (ButtonClicked(res, BUTTON3)) {
+        grid = Grid(grid.Width(), grid.Height());
+    }
     if (ButtonClicked(res, BUTTON4)) {
         menu                     = MENU_MAIN;
         STATE.Create.headerType  = Grid::HEADER_VERT;
         STATE.Create.headerIndex = 0;
     }
     // Grid width--
-    else if (GuiButton({wid * 7, hei * 8, wid, hei}, "-")) {
+    if (GuiButton({wid * 7, hei * 8, wid, hei}, "-")) {
         grid.ResizeWidth(grid.Width() - 1);
         Solver::ReverseSolve(grid);
     }
     // Grid width++
-    else if (GuiButton({wid * 9, hei * 8, wid, hei}, "+")) {
+    if (GuiButton({wid * 9, hei * 8, wid, hei}, "+")) {
         grid.ResizeWidth(grid.Width() + 1);
         Solver::ReverseSolve(grid);
     }
     // Grid height--
-    else if (GuiButton({wid * 7, hei * 9, wid, hei}, "-")) {
+    if (GuiButton({wid * 7, hei * 9, wid, hei}, "-")) {
         grid.ResizeHeight(grid.Height() - 1);
         Solver::ReverseSolve(grid);
     }
     // Grid height++
-    else if (GuiButton({wid * 9, hei * 9, wid, hei}, "+")) {
+    if (GuiButton({wid * 9, hei * 9, wid, hei}, "+")) {
         grid.ResizeHeight(grid.Height() + 1);
         Solver::ReverseSolve(grid);
     }
     // Otherwise can check for grid clicks.
-    else if (mouseLeft || mouseRight) {
+    if (mouseLeft || mouseRight) {
         // Determine positions
         Vector3 gp   = Utils::GridPos(GRID_SIZE);
         Vector2 mp   = GetMousePosition();
@@ -220,12 +233,38 @@ int Create(int menu, Grid& grid)
                 Grid::Cell cellType = (mouseLeft ? Grid::CELL_VALID : Grid::CELL_INVALID);
                 ToggleCell(grid, pos, cellType);
                 Solver::ReverseSolve(grid);
-            } else if (pos.x < 0 && pos.y > 0) {
-                STATE.Create.headerType  = Grid::HEADER_HORZ;
-                STATE.Create.headerIndex = pos.y;
-            } else if (pos.y < 0 && pos.x > 0) {
-                STATE.Create.headerType  = Grid::HEADER_VERT;
-                STATE.Create.headerIndex = pos.x;
+            }
+            // Horizontal header
+            else if (pos.x < 0 && pos.y > 0) {
+                if (pos.y < grid.Height()) {
+                    STATE.Create.headerType  = Grid::HEADER_HORZ;
+                    STATE.Create.headerIndex = pos.y;
+                }
+            }
+            // Vertical header
+            else if (pos.y < 0 && pos.x > 0) {
+                if (pos.x < grid.Width()) {
+                    STATE.Create.headerType  = Grid::HEADER_VERT;
+                    STATE.Create.headerIndex = pos.x;
+                }
+            }
+        }
+        // Check for bottom row as well
+        else if (IsBetween(mp.x, gp.x, gp.x + gp.z) &&
+                 IsBetween(mp.y, gp.y + BottomLineY(), gp.y + BottomLineY() + size)) {
+            Vector2 pos = {(mp.x - gp.x) / size, (mp.y - gp.y) / size};
+
+            // Check indexing
+            if (IsBetween(pos.x, 0, grid.Width())) {
+                {
+                    Grid::Cell cellType = (mouseLeft ? Grid::CELL_VALID : Grid::CELL_INVALID);
+                    if (STATE.Create.headerType == Grid::HEADER_HORZ) {
+                        ToggleCell(grid, {pos.x, (float)STATE.Create.headerIndex}, cellType);
+                    } else {
+                        ToggleCell(grid, {(float)STATE.Create.headerIndex, pos.x}, cellType);
+                    }
+                    Solver::ReverseSolve(grid);
+                }
             }
         }
     }
@@ -359,12 +398,11 @@ void RenderGrid(const Grid& grid)
     RenderGridLeft(grid, size);
 
     RenderGridLineHeader(grid.Header(STATE.Create.headerType, STATE.Create.headerIndex), size,
-                         GetRenderHeight() * 0.583333);
+                         BottomLineY());
     if (STATE.Create.headerType == Grid::HEADER_HORZ) {
-        RenderGridLineCells(grid.Row(STATE.Create.headerIndex), size, GetRenderHeight() * 0.583333);
+        RenderGridLineCells(grid.Row(STATE.Create.headerIndex), size, BottomLineY());
     } else {
-        RenderGridLineCells(grid.Column(STATE.Create.headerIndex), size,
-                            GetRenderHeight() * 0.583333);
+        RenderGridLineCells(grid.Column(STATE.Create.headerIndex), size, BottomLineY());
     }
 
     rlPopMatrix();

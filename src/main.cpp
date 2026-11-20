@@ -17,7 +17,7 @@ int main(void)
 {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(200, 200, "Nonograms");
-    SetTargetFPS(60);
+    // SetTargetFPS(60);
     SetWindowMinSize(600, 600);
     SetExitKey(KEY_NULL);
     UpdateUiElements();
@@ -80,7 +80,7 @@ int main(void)
             break;
         }
 
-        DrawFPS(0, 0);
+        DrawFPS(10, 10);
         EndDrawing();
     }
 
